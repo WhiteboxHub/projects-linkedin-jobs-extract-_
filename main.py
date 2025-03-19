@@ -5,6 +5,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+import datetime
 import time
 import yaml
 import random
@@ -18,9 +19,7 @@ import csv
 from position_role import ML_roles, UI_roles, QA_roles
 
 def detect_platform(domain):
-    
     domain = domain.replace("careers.", "").replace("jobs.", "").replace("www.", "")
-    
     platform = domain.split('.')[0]
     return platform
 
@@ -37,100 +36,87 @@ def extract_job_id_from_url(url):
             return None
 
         if 'lever.co' in parsed_url.netloc:
-             
             if path_parts[-1] == "apply":
                 return path_parts[-2] 
-            else :
+            else:
                 return path_parts[-1]
-            
         elif "greenhouse.io" in parsed_url.netloc:
-            if  path_parts[-1]=="job_app":
+            if path_parts[-1] == "job_app":
                 return None
-            else :
+            else:
                 return path_parts[-1]
-            
         elif "ashbyhq.com" in parsed_url.netloc:
-            if  path_parts[-1]=="application":
+            if path_parts[-1] == "application":
                 return path_parts[-2]
-            else :
+            else:
                 return path_parts[-1]
-            
         elif "workdayjobs.com" in parsed_url.netloc or "myworkdayjobs.com" in parsed_url.netloc:
             if path_parts[-1] == "login":
                 return None 
-
-            else :
+            else:
                 return path_parts[-1]
         elif "jobvite.com" in parsed_url.netloc:
-           if path_parts[-1] == "apply":
-               
-               return path_parts[-2]
-               
-           else:
+            if path_parts[-1] == "apply":
+                return path_parts[-2]
+            else:
                 return path_parts[-1]
         else:
             return path_parts[-1]
-        
     except Exception as e:
         print(f"Error extracting job ID from URL: {e}")
         return None
 
 def extract_platform_and_company_from_url(url):
-    
     parsed_url = urlparse(url)
     domain = parsed_url.netloc.lower()
     platform = detect_platform(domain)
     company = None
     if "greenhouse.io" in domain:
-        platform = "Greenhouse"
+        platform = "greenhouse"
         company = parsed_url.path.split('/')[1] if len(parsed_url.path.split('/')) > 1 else domain.split('.')[0]
     elif "lever.co" in domain:
-        platform = "Lever"
+        platform = "lever"
         company = parsed_url.path.split('/')[1] if len(parsed_url.path.split('/')) > 1 else domain.split('.')[0]
     elif "jobvite.com" in domain:
-        platform = "Jobvite"
+        platform = "jobvite"
         company = parsed_url.path.split('/')[2] if len(parsed_url.path.split('/')) > 2 else domain.split('.')[0]
-
     elif "ashbyhq.com" in domain:
-        platform = "Ashby"
+        platform = "ashby"
         company = parsed_url.path.split('/')[1] if len(parsed_url.path.split('/')) > 1 else domain.split('.')[0]
-
     elif "workdayjobs.com" in domain or "myworkdayjobs.com" in domain:
-        platform = "Workday"
+        platform = "workday"
         subdomain = domain.split('.')[0]
         if subdomain.startswith("wd"):
             company = subdomain
         else:
             company = subdomain
-    
     elif "smartrecruiters.com" in domain:
-        platform = "SmartRecruiters"
+        platform = "smartRecruiters"
         company = domain.split('.')[0]
     elif "icims.com" in domain:
         platform = "iCIMS"
         company = domain.split('.')[0]
     elif "bamboohr.com" in domain:
-        platform = "BambooHR"
+        platform = "bambooHR"
         company = domain.split('.')[0]
     elif "recruitee.com" in domain:
-        platform = "Recruitee"
+        platform = "recruitee"
         company = domain.split('.')[0]
     elif "jazzhr.com" in domain:
-        platform = "JazzHR"
+        platform = "jazzHR"
         company = domain.split('.')[0]
     elif "ziprecruiter.com" in domain:
-        platform = "ZipRecruiter"
+        platform = "zipRecruiter"
         company = domain.split('.')[0]
     else:        
         platform = detect_platform(domain)
         company = domain.split('.')[0]
     return platform, company
 
-def append_link_to_csv(link, platform, company, output_folder, linkedin_id, platform_job_id):
+def append_link_to_csv(link, platform, company, output_folder, csv_filename, linkedin_id, platform_job_id):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     
-    csv_filename = "linkedin_jobs_date_time.csv"
     csv_path = os.path.join(output_folder, csv_filename)
     file_exists = os.path.isfile(csv_path)
 
@@ -152,38 +138,53 @@ def append_link_to_csv(link, platform, company, output_folder, linkedin_id, plat
             reader = csv.DictReader(csvfile)
             rows = list(reader)
             if rows:
-                last_id = int(rows[-1]['Id'])
+                last_id = int(rows[-1]['id'])
                 next_id = last_id + 1
 
+    fieldnames = ['id', 'linkedin_id', 'company', 'platform', 'job_id', 'platform_link']
+
     with open(csv_path, mode='a', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['Id', 'linkedin_id','platform', 'company', 'platform_job_id',  'platform_link']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         if not file_exists or os.path.getsize(csv_path) == 0:
             writer.writeheader()  
 
-        writer.writerow({
-            'Id': next_id,  
-            'linkedin_id': linkedin_id,  
-            'platform': platform,
-            'company': company,
-            'platform_job_id': platform_job_id,
-            'platform_link': link
-        })
+        platform = platform.lower()
+
+        if platform in ['greenhouse', 'lever', 'jobvite', 'workday']:
+            writer.writerow({
+                'id': next_id,  
+                'linkedin_id': linkedin_id,  
+                'company': company,
+                'platform': platform,
+                'job_id': platform_job_id,
+                'platform_link': link
+            })
+        else:
+            writer.writerow({
+                'id': next_id,  
+                'linkedin_id': linkedin_id,  
+                'company': '', 
+                'platform': '',  
+                'job_id': '',  
+                'platform_link': link
+            })
 
     print(f"Job ID {linkedin_id} added successfully with serial number {next_id}.")
 
 class ApplyBot:
-    def __init__(self, username, password, filename, 
-                 blacklist=[], blacklisttitles=[], experiencelevel=[], locations=[], positions=[]):
+    def __init__(self, username, password, locations, 
+                 blacklist=[], blacklisttitles=[], experiencelevel=[], positions=[],
+                 output_folder="output", csv_filename="linkedin_jobs.csv"):
         self.username = username
         self.password = password   
-        self.filename = filename
+        self.locations = locations
         self.blacklist = blacklist
         self.blacklisttitles = blacklisttitles
         self.experiencelevel = experiencelevel
-        self.locations = locations
         self.positions = positions
+        self.output_folder = output_folder
+        self.csv_filename = csv_filename
         
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service)
@@ -290,14 +291,13 @@ class ApplyBot:
         self.sleep(4)
         apply_urls = self.get_apply_button_urls()
         
-    
         linkedin_url = self.driver.current_url
         linkedin_job_id = linkedin_url.split('/')[-2] if linkedin_url.endswith('/') else linkedin_url.split('/')[-1]
         
         for url, platform, company in apply_urls:
             cleaned_url = remove_query_parameters(url)
             platform_job_id = extract_job_id_from_url(cleaned_url)  
-            append_link_to_csv(cleaned_url, platform, company, "output", linkedin_job_id, platform_job_id)
+            append_link_to_csv(cleaned_url, platform, company, self.output_folder, self.csv_filename, linkedin_job_id, platform_job_id)
 
     def Get_Job_page_with_jobid(self, jobID):
         joburl = f"https://www.linkedin.com/jobs/view/{jobID}/"
@@ -350,7 +350,6 @@ class ApplyBot:
                         new_url = self.driver.current_url
                         
                         if new_url != original_url:
-                            
                             platform, company = extract_platform_and_company_from_url(new_url)
                             apply_urls.add((new_url, platform, company))
                             print(new_url)
@@ -386,15 +385,18 @@ def Main():
 
     if role_type == 'ML':
         positions = ML_roles
-    elif role_type == "UI" :
+    elif role_type == "UI":
         positions = UI_roles
-    elif role_type == "QA" :
+    elif role_type == "QA":
         positions = QA_roles
     blacklist = parameters.get('blacklist', [])
     blacklisttitles = parameters.get('blackListTitles', [])   
-    outputfilename = f"Output/Output_of_{parameters['username']}.csv"
     experiencelevel = parameters.get('experience_level', [])
-    
+    current_time = datetime.datetime.now()
+    timestamp = current_time.strftime("%Y-%m-%d_%H-%M-%S")
+    csv_filename = f"linkedin_jobs_{timestamp}.csv"
+    output_folder = "output"
+
     ApplyBot(
         username=username,
         password=password,
@@ -403,7 +405,8 @@ def Main():
         blacklisttitles=blacklisttitles,
         experiencelevel=experiencelevel,
         positions=positions,
-        filename=outputfilename
+        output_folder=output_folder,
+        csv_filename=csv_filename  
     )
 
 Main()
