@@ -1,5 +1,5 @@
-username: username34@gmail.com  #linkedin account email
-password: password # linkedin Account password
+username: mahendarbathini34@gmail.com  #linkedin account email
+password: mahi1411 # linkedin Account password
 phone_number: (123) 456-7890      # google voice mobile number
 
 
@@ -30,13 +30,11 @@ blacklist:
 - Safeway
  
  
-
-
-experience_level:
-  - 1 # Entry level
-  - 2 # Associate
-  - 3 # Mid-Senior level
-  - 4 # Director
-  - 5 # Executive
-  - 6 # Internship
+# experience_level:
+#   - 1 # Entry level
+#   - 2 # Associate
+#   - 3 # Mid-Senior level
+#   - 4 # Director
+#   - 5 # Executive
+#   - 6 # Internship
   

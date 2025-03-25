@@ -151,7 +151,7 @@ def append_link_to_csv(link, platform, company, output_folder, csv_filename, lin
 
         platform = platform.lower()
 
-        if platform in ['greenhouse', 'lever', 'jobvite', 'workday']:
+        if platform in ['greenhouse', 'lever', 'jobvite', 'workday' , 'ashby']:
             writer.writerow({
                 'id': next_id,  
                 'linkedin_id': linkedin_id,  
@@ -174,14 +174,14 @@ def append_link_to_csv(link, platform, company, output_folder, csv_filename, lin
 
 class ApplyBot:
     def __init__(self, username, password, locations, 
-                 blacklist=[], blacklisttitles=[], experiencelevel=[], positions=[],
+                 blacklist=[], blacklisttitles=[], positions=[],
                  output_folder="output", csv_filename="linkedin_jobs.csv"):
         self.username = username
         self.password = password   
         self.locations = locations
         self.blacklist = blacklist
         self.blacklisttitles = blacklisttitles
-        self.experiencelevel = experiencelevel
+        
         self.positions = positions
         self.output_folder = output_folder
         self.csv_filename = csv_filename
@@ -198,7 +198,7 @@ class ApplyBot:
 
     def login_to_linkedin(self):
         self.driver.get('https://www.linkedin.com/login')
-        self.sleep(180)
+        self.sleep(10)
         self.driver.find_element(By.ID, 'username').send_keys(self.username)
         self.driver.find_element(By.ID, 'password').send_keys(self.password)
         self.driver.find_element(By.CSS_SELECTOR, 'button[data-litms-control-urn="login-submit"]').click()
@@ -240,8 +240,7 @@ class ApplyBot:
                 break 
 
     def Get_job_application_page(self, location, position):
-        exp_lvl_str = ",".join(map(str, self.experiencelevel)) if self.experiencelevel else ""
-        exp_lvl_param = f"&f_E={exp_lvl_str}" if exp_lvl_str else ""
+        
         location_str = f"&location={location}"
         position_str = f"&keywords={position}"
         
@@ -250,7 +249,7 @@ class ApplyBot:
         rolestring = self.roletypestr_convertion()
         
         while True:
-            URL = "https://www.linkedin.com/jobs/search/?keywords=" + position_str + rolestring + location_str + exp_lvl_param + "&f_TPR=r86400" + "&start=" + str(Job_per_page)
+            URL = "https://www.linkedin.com/jobs/search/?keywords=" + position_str + rolestring + location_str + "&f_TPR=r86400" + "&start=" + str(Job_per_page)
             print(f"Loading page: {URL}") 
             self.driver.get(URL)
             self.sleep(10)
@@ -391,7 +390,7 @@ def Main():
         positions = QA_roles
     blacklist = parameters.get('blacklist', [])
     blacklisttitles = parameters.get('blackListTitles', [])   
-    experiencelevel = parameters.get('experience_level', [])
+    
     current_time = datetime.datetime.now()
     timestamp = current_time.strftime("%Y-%m-%d_%H-%M-%S")
     csv_filename = f"linkedin_jobs_{timestamp}.csv"
@@ -403,7 +402,6 @@ def Main():
         locations=locations,        
         blacklist=blacklist,
         blacklisttitles=blacklisttitles,
-        experiencelevel=experiencelevel,
         positions=positions,
         output_folder=output_folder,
         csv_filename=csv_filename  
