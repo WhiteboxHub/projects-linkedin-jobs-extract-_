@@ -198,7 +198,7 @@ class ApplyBot:
 
     def login_to_linkedin(self):
         self.driver.get('https://www.linkedin.com/login')
-        self.sleep(10)
+        self.sleep(180)
         self.driver.find_element(By.ID, 'username').send_keys(self.username)
         self.driver.find_element(By.ID, 'password').send_keys(self.password)
         self.driver.find_element(By.CSS_SELECTOR, 'button[data-litms-control-urn="login-submit"]').click()
