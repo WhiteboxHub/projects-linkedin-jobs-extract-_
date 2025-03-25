@@ -16,6 +16,8 @@ import re
 import os
 from urllib.parse import urlparse, urlunparse
 import csv
+from ChooseCandidate import chooseCandidate
+
 from position_role import ML_roles, UI_roles, QA_roles
 
 def detect_platform(domain):
@@ -364,9 +366,8 @@ class ApplyBot:
         return apply_urls
         
 def Main():
-    fileLocation = "configs/user_auth.yaml"
-
-    with open(fileLocation, 'r') as stream:
+    fileLocation = chooseCandidate()
+    with open(fileLocation,'r') as stream:
         try:
             parameters = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
