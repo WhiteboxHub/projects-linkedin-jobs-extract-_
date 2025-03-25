@@ -30,11 +30,3 @@ blacklist:
 - Safeway
  
  
-# experience_level:
-#   - 1 # Entry level
-#   - 2 # Associate
-#   - 3 # Mid-Senior level
-#   - 4 # Director
-#   - 5 # Executive
-#   - 6 # Internship
-  
